@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pattern iteration (C1–C20)</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #0f1419;
+      --panel: #1a2332;
+      --text: #e7ecf3;
+      --muted: #8b98a5;
+      --accent: #3d8bfd;
+      --border: #2d3a4d;
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f4f6f9;
+        --panel: #fff;
+        --text: #1a2332;
+        --muted: #5c6b7a;
+        --accent: #0b57d0;
+        --border: #d0d7de;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+    main {
+      max-width: 52rem;
+      margin: 0 auto;
+      padding: 1.5rem 1rem 3rem;
+    }
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin: 0 0 0.25rem;
+    }
+    .sub {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 1.25rem;
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.1rem;
+      margin-bottom: 1rem;
+    }
+    label { display: block; font-size: 0.875rem; margin-bottom: 0.35rem; color: var(--muted); }
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: flex-end;
+    }
+    input[type="number"] {
+      width: 8rem;
+      padding: 0.5rem 0.65rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 1rem;
+    }
+    button {
+      padding: 0.55rem 1.1rem;
+      border-radius: 8px;
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:hover { filter: brightness(1.08); }
+    button:active { transform: scale(0.98); }
+    #out {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.8rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin: 0;
+      max-height: min(70vh, 36rem);
+      overflow: auto;
+    }
+    table.result {
+      border-collapse: collapse;
+      width: 100%;
+      max-width: 28rem;
+      font-size: 0.85rem;
+      margin: 0.5rem 0;
+    }
+    table.result th, table.result td {
+      border: 1px solid var(--border);
+      padding: 0.35rem 0.5rem;
+      text-align: left;
+    }
+    table.result th { background: var(--bg); color: var(--muted); font-weight: 600; }
+    .err { color: #f85149; margin-top: 0.5rem; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Pattern iteration program</h1>
+    <p class="sub">Same rules as the Java version. Open this file in Chrome: double-click the file or drag it into a tab.</p>
+
+    <div class="panel">
+      <form id="form" class="row">
+        <div>
+          <label for="L">Number of iterations (L)</label>
+          <input id="L" type="number" min="1" max="5000" value="3" required />
+        </div>
+        <button type="submit">Run</button>
+      </form>
+      <p id="L-display" class="sub" style="margin:0.75rem 0 0;"></p>
+      <div id="error" class="err" hidden></div>
+    </div>
+
+    <div class="panel">
+      <pre id="out"></pre>
+    </div>
+  </main>
+
+  <script>
+(function () {
+  const Z = [
+    null,
+    "XXXX", "YXYX", "XYXX", "YXXY", "YYYX", "YYXY", "YXXX", "YYXX",
+    "XXYY", "XXXY", "YXYY", "XYYY", "XYYX", "XXYX", "XYXY", "YYYY"
+  ];
+
+  function add(a, b) {
+    const xA = a === "X";
+    const xB = b === "X";
+    return xA === xB ? "Y" : "X";
+  }
+
+  function addColumns(...cols) {
+    if (!cols.length) return "";
+    const len = cols[0].length;
+    let s = "";
+    for (let r = 0; r < len; r++) {
+      let acc = cols[0][r];
+      for (let i = 1; i < cols.length; i++) {
+        acc = add(acc, cols[i][r]);
+      }
+      s += acc;
+    }
+    return s;
+  }
+
+  function addPair(c1, c2) {
+    return addColumns(c1, c2);
+  }
+
+  function indexOfZ(pattern) {
+    for (let i = 1; i <= 16; i++) {
+      if (Z[i] === pattern) return i;
+    }
+    return -1;
+  }
+
+  function isZ1Z7OrZ11(c15) {
+    return c15 === Z[1] || c15 === Z[7] || c15 === Z[11];
+  }
+
+  function c20MatchesSpecial(c20) {
+    return c20 === Z[1] || c20 === Z[6] || c20 === Z[10] || c20 === Z[15];
+  }
+
+  function matchingPlaces(a, b) {
+    const n = Math.min(a.length, b.length);
+    let count = 0;
+    for (let i = 0; i < n; i++) {
+      if (a[i] === b[i]) count++;
+    }
+    return count;
+  }
+
+  function randInt(max) {
+    const buf = new Uint32Array(1);
+    crypto.getRandomValues(buf);
+    return buf[0] % max;
+  }
+
+  function runOneStart() {
+    const c = new Array(17);
+    const i1 = 1 + randInt(16);
+    const i2 = 1 + randInt(16);
+    const i3 = 1 + randInt(16);
+    const i4 = 1 + randInt(16);
+    c[1] = Z[i1];
+    c[2] = Z[i2];
+    c[3] = Z[i3];
+    c[4] = Z[i4];
+    c[5] = c[4];
+    c[6] = c[3];
+    c[7] = c[2];
+    c[8] = c[1];
+    c[9] = addPair(c[1], c[2]);
+    c[10] = addPair(c[3], c[4]);
+    c[11] = addPair(c[5], c[6]);
+    c[12] = addPair(c[7], c[8]);
+    c[13] = addPair(c[9], c[10]);
+    c[14] = addPair(c[11], c[12]);
+    c[15] = addPair(c[13], c[14]);
+    c[16] = addPair(c[15], c[1]);
+    return c;
+  }
+
+  function runProgram(L) {
+    let text = "";
+    for (let iteration = 1; iteration <= L; iteration++) {
+      text += "\n========== Iteration " + iteration + " ==========\n";
+      let c;
+      for (;;) {
+        c = runOneStart();
+        if (!isZ1Z7OrZ11(c[15])) break;
+      }
+      const c17 = addColumns(c[1], c[4], c[7], c[8]);
+      const c20Raw = addColumns(c[3], c[7], c[11], c[15]);
+      let c20Label;
+      if (!c20MatchesSpecial(c20Raw)) {
+        c20Label = "Nil";
+        text += "C20 is not Z1, Z6, Z10, or Z15 -> C20 = Nil\n";
+      } else {
+        const zIdx = indexOfZ(c20Raw);
+        c20Label = "Z" + zIdx + " (" + c20Raw + ")";
+        text += "C20 matches Z1, Z6, Z10, or Z15 -> printing C20: " + c20Label + "\n";
+      }
+      const c17Matches = [];
+      for (let i = 1; i <= 16; i++) {
+        if (matchingPlaces(c17, c[i]) >= 4) c17Matches.push(i);
+      }
+      if (c17Matches.length) {
+        text += "\nC17 equals one or more of C1..C16 in four or more places (full row match).\n";
+        text += "Iteration: " + iteration + "\n\n";
+        text += "C index      Pattern   Z label\n";
+        text += "--------------------------------------------\n";
+        for (const idx of c17Matches) {
+          const zLabel = indexOfZ(c[idx]);
+          const zStr = zLabel >= 0 ? "Z" + zLabel : "?";
+          text += "C" + String(idx).padEnd(11, " ") + " " + String(c[idx]).padEnd(8, " ") + " " + zStr + "\n";
+        }
+        text += "--------------------------------------------\n";
+        text += "C17 = " + c17 + "\n";
+      }
+    }
+    text += "\nEND after " + L + " iteration(s).\n";
+    return text;
+  }
+
+  const form = document.getElementById("form");
+  const Linput = document.getElementById("L");
+  const out = document.getElementById("out");
+  const err = document.getElementById("error");
+  const Ldisplay = document.getElementById("L-display");
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    err.hidden = true;
+    const L = parseInt(Linput.value, 10);
+    if (!Number.isFinite(L) || L < 1) {
+      err.textContent = "Enter a positive integer for L.";
+      err.hidden = false;
+      return;
+    }
+    if (L > 5000) {
+      err.textContent = "L is capped at 5000 in the browser to keep the page responsive.";
+      err.hidden = false;
+      return;
+    }
+    Ldisplay.textContent = "Number of iterations L = " + L;
+    out.textContent = "Running…";
+    requestAnimationFrame(function () {
+      try {
+        out.textContent = runProgram(L);
+      } catch (ex) {
+        out.textContent = "";
+        err.textContent = String(ex.message || ex);
+        err.hidden = false;
+      }
+    });
+  });
+})();
+  </script>
+</body>
+</html>
