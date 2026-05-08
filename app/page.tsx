@@ -1,4 +1,5 @@
 import Link from "next/link";
+import OwnerCta from "./OwnerCta";
 
 export default function LandingPage() {
   return (
@@ -24,7 +25,8 @@ export default function LandingPage() {
           Give your business a 24/7 AI receptionist. It answers customer questions in a natural
           voice, books appointments, and sends every conversation summary straight to your Telegram.
         </p>
-        <div className="mt-10 flex justify-center gap-3">
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+          <OwnerCta />
           <Link
             href="/signup"
             className="rounded-md bg-brand-600 px-6 py-3 font-medium text-white hover:bg-brand-700"
@@ -38,6 +40,9 @@ export default function LandingPage() {
             Sign in
           </Link>
         </div>
+        <p className="mt-3 text-xs text-slate-500">
+          One-click owner sign-in goes straight to the dashboard with demo data.
+        </p>
       </section>
 
       <section className="mx-auto grid max-w-5xl gap-6 px-6 pb-24 sm:grid-cols-3">
