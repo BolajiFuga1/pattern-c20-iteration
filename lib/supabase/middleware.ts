@@ -6,9 +6,17 @@ type CookieToSet = { name: string; value: string; options?: CookieOptions };
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
 
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  // If Supabase isn't configured (e.g. fresh Vercel deploy without env vars),
+  // skip auth instead of 500-ing on the marketing pages. Protected pages will
+  // surface a clearer error when they try to query.
+  if (!supabaseUrl || !supabaseAnonKey) return response;
+
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         getAll() {
