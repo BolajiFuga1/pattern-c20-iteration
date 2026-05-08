@@ -2,6 +2,7 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { createClient } from "@supabase/supabase-js";
 import { env } from "@/lib/env";
+import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabase-config";
 
 type CookieToSet = { name: string; value: string; options?: CookieOptions };
 
@@ -9,7 +10,7 @@ type CookieToSet = { name: string; value: string; options?: CookieOptions };
 // All reads/writes go through RLS using the user's session cookie.
 export async function getSupabaseServerClient() {
   const cookieStore = await cookies();
-  return createServerClient(env.supabaseUrl(), env.supabaseAnonKey(), {
+  return createServerClient(getSupabaseUrl(), getSupabaseAnonKey(), {
     cookies: {
       getAll() {
         return cookieStore.getAll();
@@ -29,7 +30,7 @@ export async function getSupabaseServerClient() {
 
 // Service-role client. Bypasses RLS. Only use inside webhook / cron / provisioning routes.
 export function getSupabaseServiceClient() {
-  return createClient(env.supabaseUrl(), env.supabaseServiceRoleKey(), {
+  return createClient(getSupabaseUrl(), env.supabaseServiceRoleKey(), {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 }
