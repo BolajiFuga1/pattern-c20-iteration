@@ -1,2 +1,12 @@
 .DS_Store
 *.class
+node_modules
+.next
+out
+.env
+.env.local
+.env.*.local
+*.log
+.vercel
+next-env.d.ts
+tsconfig.tsbuildinfo
