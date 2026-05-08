@@ -4,6 +4,47 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Business, Service } from "@/lib/types";
 
+function RegisterWebhookButton() {
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function run() {
+    setBusy(true);
+    setErr(null);
+    setMsg(null);
+    try {
+      const res = await fetch("/api/telegram/register-webhook", { method: "POST" });
+      const json = await res.json();
+      if (!res.ok) {
+        setErr(json.error ?? "Failed to register webhook");
+      } else {
+        setMsg(`Webhook registered: ${json.webhook}`);
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="space-y-2 border-t border-slate-100 pt-3">
+      <button
+        type="button"
+        onClick={run}
+        disabled={busy}
+        className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-medium hover:bg-slate-100 disabled:opacity-60"
+      >
+        {busy ? "Registering…" : "Register Telegram webhook"}
+      </button>
+      <p className="text-xs text-slate-500">
+        One-time setup — tells Telegram where to deliver bot messages. Re-run if your domain changes.
+      </p>
+      {msg && <p className="text-xs text-emerald-700">{msg}</p>}
+      {err && <p className="text-xs text-red-600">{err}</p>}
+    </div>
+  );
+}
+
 export default function SettingsClient({ business }: { business: Business }) {
   const router = useRouter();
   const [name, setName] = useState(business.name);
@@ -130,10 +171,10 @@ export default function SettingsClient({ business }: { business: Business }) {
         />
       </section>
 
-      <section className="rounded-xl border border-slate-200 bg-white p-6">
+      <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-6">
         <h2 className="text-base font-semibold">Telegram</h2>
         {business.telegram_chat_id ? (
-          <p className="mt-1 text-sm text-emerald-700">
+          <p className="text-sm text-emerald-700">
             ✓ Linked. We'll send call summaries to your Telegram.
           </p>
         ) : telegramLink ? (
@@ -141,8 +182,9 @@ export default function SettingsClient({ business }: { business: Business }) {
             Link Telegram bot
           </a>
         ) : (
-          <p className="mt-1 text-sm text-slate-500">Telegram bot not configured.</p>
+          <p className="text-sm text-slate-500">Telegram bot not configured.</p>
         )}
+        <RegisterWebhookButton />
       </section>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
