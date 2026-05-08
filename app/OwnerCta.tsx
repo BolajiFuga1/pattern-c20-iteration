@@ -21,7 +21,7 @@ export default function OwnerCta({ className }: { className?: string }) {
         password: OWNER_PASSWORD,
       });
       if (signInErr) {
-        await fetch(`${getSupabaseUrl()}/functions/v1/auto-signup`, {
+        const res = await fetch(`${getSupabaseUrl()}/functions/v1/auto-signup`, {
           method: "POST",
           headers: {
             "content-type": "application/json",
@@ -29,6 +29,10 @@ export default function OwnerCta({ className }: { className?: string }) {
           },
           body: JSON.stringify({ email: OWNER_EMAIL, password: OWNER_PASSWORD }),
         });
+        if (!res.ok) {
+          const body = await res.text().catch(() => "");
+          throw new Error(`auto-signup failed (${res.status}): ${body}`);
+        }
         ({ error: signInErr } = await supabase.auth.signInWithPassword({
           email: OWNER_EMAIL,
           password: OWNER_PASSWORD,
@@ -38,8 +42,11 @@ export default function OwnerCta({ className }: { className?: string }) {
         setError(signInErr.message);
         return;
       }
-      router.push("/dashboard");
-      router.refresh();
+      // Hard nav so the browser sends the freshly-set Supabase auth cookie on
+      // the dashboard request and middleware sees an authenticated session.
+      window.location.assign("/dashboard");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
     } finally {
       setLoading(false);
     }
